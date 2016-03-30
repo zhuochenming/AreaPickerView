@@ -25,14 +25,13 @@
 
 @property (assign, nonatomic) id <AreaPickerDelegate> delegate;
 
-//@property (strong, nonatomic) UIPickerView *locatePicker;
-
+//可以返回当前选择的区域
 @property (strong, nonatomic) AreaLocation *locate;
 
+//初始化，默认frame在底部，包含toolbar，不要再设置frame
 - (id)initWithDelegate:(id <AreaPickerDelegate>)delegate;
 
+//展示
 - (void)showInView:(UIView *)view;
-
-//- (void)cancelPicker;
 
 @end
