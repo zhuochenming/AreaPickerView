@@ -42,11 +42,11 @@
         CGFloat height = CGRectGetHeight([UIScreen mainScreen].bounds);
         self.frame = CGRectMake(0, 0, width, height);
         
-        self.locatePicker = [[UIPickerView alloc] initWithFrame:CGRectMake(0, height - 250, width, 250)];
+        self.locatePicker = [[UIPickerView alloc] initWithFrame:CGRectMake(0, height - 216, width, 216)];
         self.locatePicker.backgroundColor = [UIColor whiteColor];
         [self addSubview:_locatePicker];
         
-        UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, height - CGRectGetMinY(_locatePicker.frame) - 40, width, 40)];
+        UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, height - CGRectGetHeight(_locatePicker.frame) - 40, width, 40)];
         UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithTitle:@"   取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelPicker)];
         UIBarButtonItem *centerSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
         UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithTitle:@"确定   " style:UIBarButtonItemStylePlain target:self action:@selector(doneClick)];
@@ -140,18 +140,12 @@
             [self.codeArray removeAllObjects];
             
             self.cities = [[self.provinces objectAtIndex:row] objectForKey:@"city"];
-            [self.locatePicker selectRow:0 inComponent:1 animated:YES];
-            [self.locatePicker reloadComponent:1];
-            
             NSDictionary *areaDic = [[self.cities objectAtIndex:0] objectForKey:@"area"];
-            
             for (NSDictionary *nameDic in areaDic) {
                 [self.areas addObject:nameDic[@"name"]];
                 [self.codeArray addObject:nameDic[@"id"]];
             }
-            [self.locatePicker selectRow:0 inComponent:2 animated:YES];
-            [self.locatePicker reloadComponent:2];
-            
+
             self.locate.province = [[self.provinces objectAtIndex:row] objectForKey:@"name"];
             self.locate.city = [[self.cities objectAtIndex:0] objectForKey:@"name"];
             
@@ -161,6 +155,13 @@
             } else {
                 self.locate.area = @"";
             }
+            
+            [pickerView reloadComponent:1];
+            [pickerView reloadComponent:2];
+
+            [pickerView selectRow:0 inComponent:1 animated:YES];
+            [pickerView selectRow:0 inComponent:2 animated:YES];
+            
             break;
         }
         case 1:
@@ -174,9 +175,6 @@
                 [self.codeArray addObject:nameDic[@"id"]];
             }
             
-            [self.locatePicker selectRow:0 inComponent:2 animated:YES];
-            [self.locatePicker reloadComponent:2];
-            
             self.locate.city = [[self.cities objectAtIndex:row] objectForKey:@"name"];
             if ([self.areas count] > 0) {
                 self.areaID = [self.codeArray objectAtIndex:0];
@@ -184,6 +182,10 @@
             } else {
                 self.locate.area = @"";
             }
+            
+            [self.locatePicker reloadComponent:2];
+            [self.locatePicker selectRow:0 inComponent:2 animated:YES];
+  
             break;
         }
         case 2:
