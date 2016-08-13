@@ -8,7 +8,15 @@
 
 #import "AreaPickerView.h"
 
+static CGFloat const TopToobarHeight = 40;
+
+@implementation AreaLocation
+
+@end
+
 @interface AreaPickerView ()<UIPickerViewDelegate, UIPickerViewDataSource>
+
+@property (nonatomic, assign) UIPickerView *pickerView;
 
 //省份数组
 @property (nonatomic, strong) NSArray *provinces;
@@ -37,30 +45,10 @@
 }
 
 #pragma mark - 初始化
-- (id)initWithDelegate:(id<AreaPickerDelegate>)delegate {
+- (id)initWithDelegate:(id <AreaPickerDelegate>)delegate title:(NSString *)title {
     self = [super init];
     
     if (self) {
-        self.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.6];
-        CGFloat width = CGRectGetWidth([UIScreen mainScreen].bounds);
-        CGFloat height = CGRectGetHeight([UIScreen mainScreen].bounds);
-        self.frame = CGRectMake(0, 0, width, height);
-        
-        UIPickerView *locatePicker = [[UIPickerView alloc] initWithFrame:CGRectMake(0, height - 216, width, 216)];
-        locatePicker.backgroundColor = [UIColor whiteColor];
-        locatePicker.dataSource = self;
-        locatePicker.delegate = self;
-        [self addSubview:locatePicker];
-        
-        UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, height - CGRectGetHeight(locatePicker.frame) - 40, width, 40)];
-        UIBarButtonItem *leftItem = [[UIBarButtonItem alloc] initWithTitle:@"   取消" style:UIBarButtonItemStylePlain target:self action:@selector(cancelPicker)];
-        UIBarButtonItem *centerSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
-        UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithTitle:@"确定   " style:UIBarButtonItemStylePlain target:self action:@selector(doneClick)];
-        
-        toolbar.items = @[leftItem, centerSpace, rightItem];
-        
-        [self addSubview:toolbar];
-        
         //加载数据
         self.provinces = [[NSArray alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"areaCode.plist" ofType:nil]];
         self.cities = [[self.provinces objectAtIndex:0] objectForKey:@"city"];
@@ -82,10 +70,66 @@
         } else {
             self.locate.area = @"";
         }
+        
+        self.backgroundColor = [UIColor whiteColor];
+        CGFloat kWidth = CGRectGetWidth([UIScreen mainScreen].bounds);
+
+        UIPickerView *locatePicker = [[UIPickerView alloc] init];
+        
+        CGRect pickerFrame = locatePicker.frame;
+        pickerFrame.origin.y = TopToobarHeight;
+        pickerFrame.size.width = kWidth;
+        locatePicker.frame = pickerFrame;
+        
+        locatePicker.backgroundColor = [UIColor whiteColor];
+        locatePicker.dataSource = self;
+        locatePicker.delegate = self;
+        [self addSubview:locatePicker];
+        _pickerView = locatePicker;
+        
+        [self createSubViewWithTitle:title];
         //代理
         self.delegate = delegate;
     }
     return self;
+}
+
+- (void)createSubViewWithTitle:(NSString *)title {
+    CGFloat height = CGRectGetHeight(_pickerView.frame) + TopToobarHeight;
+    CGFloat top = CGRectGetHeight([UIScreen mainScreen].bounds) - height;
+    CGFloat width = CGRectGetWidth([UIScreen mainScreen].bounds);
+    self.backgroundColor = [UIColor whiteColor];
+    self.frame = CGRectMake(0, top, width, height);
+    
+    CGFloat buttonWidth = 50;
+    UIButton *leftButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    leftButton.frame = CGRectMake(15, 0, buttonWidth, TopToobarHeight);
+    [leftButton setTitle:@"取消" forState:UIControlStateNormal];
+    [leftButton setTitleColor:[UIColor colorWithRed:75 / 255.0 green:137 / 255.0 blue:220 / 255.0 alpha:1.0] forState:UIControlStateNormal];
+    [leftButton addTarget:self action:@selector(cancelPicker) forControlEvents:UIControlEventTouchUpInside];
+    leftButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [self addSubview:leftButton];
+    
+    CGFloat left = (CGRectGetWidth(self.frame) - 150) / 2.0;
+    UILabel *lable = [[UILabel alloc] initWithFrame:CGRectMake(left, 0, 150, TopToobarHeight)];
+    lable.text = title;
+    lable.textAlignment = NSTextAlignmentCenter;
+    lable.textColor = [UIColor lightGrayColor];
+    lable.font = [UIFont systemFontOfSize:14];
+    
+    [self addSubview:lable];
+    
+    UIButton *rightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    rightButton.frame = CGRectMake(CGRectGetWidth(self.frame) - 15 - TopToobarHeight, 0, buttonWidth, TopToobarHeight);
+    [rightButton setTitle:@"确定" forState:UIControlStateNormal];
+    [rightButton setTitleColor:[UIColor colorWithRed:75 / 255.0 green:137 / 255.0 blue:220 / 255.0 alpha:1.0] forState:UIControlStateNormal];
+    [rightButton addTarget:self action:@selector(doneClick) forControlEvents:UIControlEventTouchUpInside];
+    rightButton.titleLabel.font = [UIFont systemFontOfSize:14];
+    [self addSubview:rightButton];
+    
+    UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, TopToobarHeight - 0.5, width, 0.5)];
+    lineView.backgroundColor = [UIColor lightGrayColor];
+    [self addSubview:lineView];
 }
 
 #pragma mark - pickerView代理
@@ -128,6 +172,62 @@
             return  @"";
             break;
     }
+}
+
+#pragma mark - 定制
+- (void)pickerViewSelectRow:(NSInteger)row inComponent:(NSInteger)component {
+    [self.pickerView selectRow:row inComponent:component animated:YES];
+    [self.pickerView reloadComponent:component];
+}
+
+- (void)pickerViewSelectAtAreaCode:(NSNumber *)areaCode {
+    
+    NSInteger a = 0, b = 0, c = 0;
+    
+    
+    for (int i = 0; i < _provinces.count; i++) {
+        NSDictionary *cityDic = _provinces[i];
+        NSArray *cityArray = cityDic[@"city"];
+        for (int j = 0; j < cityArray.count; j++) {
+            
+            NSDictionary *areaDic = cityArray[i];
+            NSArray *areaArray = areaDic[@"area"];
+            for (int k = 0; k < areaArray.count; k++) {
+                NSDictionary *resultDic = areaArray[i];
+                
+                if ([areaCode isEqualToNumber:resultDic[@"id"]]) {
+                    a = i;
+                    b = j;
+                    c = k;
+                    break;
+                }
+            }
+            
+        }
+    }
+    
+    
+    
+}
+
+- (CGFloat)pickerView:(UIPickerView *)pickerView widthForComponent:(NSInteger)component {
+    return 100;
+}
+
+- (CGFloat)pickerView:(UIPickerView *)pickerView rowHeightForComponent:(NSInteger)component {
+    return 30;
+}
+
+- (UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(nullable UIView *)view {
+    UILabel *lable = [[UILabel alloc] init];
+    lable.frame = CGRectMake(0.0, 0.0, 100, 30);
+ 
+    lable.textAlignment = NSTextAlignmentCenter;
+
+    lable.text = [self pickerView:pickerView titleForRow:row forComponent:component];
+    lable.font = [UIFont systemFontOfSize:14];
+    lable.backgroundColor = [UIColor clearColor];
+    return lable;
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
@@ -206,9 +306,14 @@
 
 #pragma mark - 展示
 - (void)showInView:(UIView *)view {
-    self.frame = CGRectMake(0, view.frame.size.height - self.frame.size.height, self.frame.size.width, self.frame.size.height);
-    self.alpha = 0;
-    [view addSubview:self];
+    
+    UIView *bacView = [[UIView alloc] initWithFrame:view.frame];
+    bacView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.7];
+    [bacView addSubview:self];
+    
+//    self.frame = CGRectMake(0, view.frame.size.height - self.frame.size.height, self.frame.size.width, self.frame.size.height);
+//    self.alpha = 0;
+    [view addSubview:bacView];
     
     [UIView animateWithDuration:0.3 animations:^{
         self.alpha = 1;

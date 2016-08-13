@@ -7,10 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "AreaLocation.h"
+
+@interface AreaLocation : NSObject
+
+@property (strong, nonatomic) NSString *province;
+
+@property (strong, nonatomic) NSString *city;
+
+@property (strong, nonatomic) NSString *area;
+
+@end
+
 
 @class AreaPickerView;
-
 @protocol AreaPickerDelegate <NSObject>
 
 @optional
@@ -29,9 +38,13 @@
 @property (strong, nonatomic) AreaLocation *locate;
 
 //初始化，默认frame在底部，包含toolbar，不要再设置frame
-- (id)initWithDelegate:(id <AreaPickerDelegate>)delegate;
+- (id)initWithDelegate:(id <AreaPickerDelegate>)delegate title:(NSString *)title;
 
 //展示
 - (void)showInView:(UIView *)view;
+
+- (void)pickerViewSelectRow:(NSInteger)row inComponent:(NSInteger)component;
+
+- (void)pickerViewSelectAtAreaCode:(NSNumber *)areaCode;
 
 @end
